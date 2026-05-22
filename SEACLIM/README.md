@@ -1,20 +1,6 @@
-# NorCPM Atmospheric Hindcast Post-Processing
+# SEACLIM NorCPM Hindcast Post-Processing
 
-A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting atmospheric output from NorESM2-MM seasonal climate hindcast runs.
-
----
-
-## Overview
-
-This pipeline processes raw NorCPM atmospheric forecast data for a given start year and ensemble member. It performs the following steps:
-
-1. **Downloads** NorCPM atmospheric output for the specified hindcast
-2. **Extracts** individual atmospheric variables from model output files
-3. **Merges** yearly files into a single time series
-4. **Applies bias correction** (variable-dependent method)
-5. **Fixes the time axis and calendar** to standard Gregorian
-6. **Inserts leap days** for leap years
-7. **Prepends an additional timestep** to the first year of output
+A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting atmospheric and ocean output from NorESM2-MM seasonal climate hindcast runs.
 
 ---
 
@@ -22,9 +8,14 @@ This pipeline processes raw NorCPM atmospheric forecast data for a given start y
 
 | Script | Description |
 |---|---|
-| `Process_norcpm_atm.sh` | Main script — orchestrates the full pipeline |
-| `Download_norcpm_atm.sh` | Downloads raw NorCPM hindcast atmospheric files |
-| `Update_cal_biasfiles.sh` | Fixes calendar metadata on bias correction reference files |
+| `wget_seaclim_hindcasts.sh` | Downloads raw NorCPM hindcast files from the Sigma2 server |
+| `Download_norcpm_atm.sh` | Wraps `wget_seaclim_hindcasts.sh` for atmospheric output (cam.h2, >20N, 3-hourly) |
+| `Download_norcpm_ocn.sh` | Wraps `wget_seaclim_hindcasts.sh` for ocean output (global and >20N monthly) |
+| `Preproc_norcpm_atm.sh` | Main atmospheric pipeline — extract, bias-correct, calendar-fix, insert leap days |
+| `Preproc_norcpm_ocn.sh` | Main ocean pipeline — extract, bias-correct, calendar-fix ocean variables |
+| `Update_cal_biasfiles_fix.sh` | Fixes calendar metadata on atmospheric bias correction reference files |
+| `Transport_1year.sh` | Computes ocean section transports for a single year using `m2transport` |
+| `Transfer_to_edito.sh` | Transfers processed TOPAZ2 hindcast output from NIRD to the EDITO platform |
 
 ---
 
@@ -35,34 +26,43 @@ This pipeline processes raw NorCPM atmospheric forecast data for a given start y
 | [CDO](https://code.mpimet.mpg.de/projects/cdo) | 2.0.6-gompi-2022a | NetCDF file manipulation and calendar operations |
 | [NCO](https://nco.sourceforge.net/) | 5.1.3-foss-2022a | Variable subsetting and attribute editing |
 
-> **HPC users:** Uncomment the `module load` lines at the top of the script to load these tools via the module system.
+> **HPC users:** Uncomment the `module load` lines at the top of the scripts to load these tools via the module system.
 
 ---
 
-## Usage
+## Atmospheric Pipeline
+
+### Usage
 
 ```bash
-./Process_norcpm_atm.sh <start_year> <member>
+./Preproc_norcpm_atm.sh <start_year> <member> [atmdir]
 ```
-
-### Arguments
 
 | Argument | Description | Example |
 |---|---|---|
 | `start_year` | Hindcast initialisation year | `1993` |
 | `member` | Ensemble member number | `3` |
+| `atmdir` | Root data directory (optional, defaults to current directory) | `/data/seaclim` |
 
 ### Example
 
 ```bash
-./Process_norcpm_atm.sh 1993 3
+./Preproc_norcpm_atm.sh 1993 3
 ```
 
 This processes ensemble member 3 of the hindcast initialised in November 1993, covering the period 1993–1999.
 
----
+### Pipeline stages
 
-## Atmospheric Variables
+1. **Download** raw NorCPM atmospheric output via `Download_norcpm_atm.sh`
+2. **Extract** individual variables from model output files per year
+3. **Merge** yearly files into a single time series and remove spurious timesteps
+4. **Apply bias correction** (variable-dependent method, see below)
+5. **Set grid** and split back into yearly files
+6. **Prepend** a synthetic timestep at `<syear>-10-31 21:00:00` to the first year
+7. **Fix the calendar** to standard Gregorian and insert leap days for leap years
+
+### Atmospheric variables
 
 | Variable | Long Name |
 |---|---|
@@ -75,11 +75,7 @@ This processes ensemble member 3 of the hindcast initialised in November 1993, c
 | `FSDS` | Downwelling shortwave flux at surface |
 | `FLDS` | Downwelling longwave flux at surface |
 
----
-
-## Bias Correction Methods
-
-Different variables use different correction strategies:
+### Bias correction methods
 
 | Variable(s) | Method |
 |---|---|
@@ -92,23 +88,39 @@ Bias correction reference files are located in the parent of the member director
 
 ---
 
-## Configuration
+## Ocean Pipeline
 
-The following paths are hardcoded and should be updated to match your environment:
+### Usage
 
 ```bash
-# In Process_norcpm_atm.sh and Update_cal_biasfiles.sh
-atmdir=/Users/annettes/Downloads/Tools/SEACLIM/noresm2-mm-seaclim_hindcast/
+./Preproc_norcpm_ocn.sh <start_year> <member> [download]
 ```
 
-Also ensure the CDO grid description file is available:
-```
-cdogrid_norcpm_atm_20n
-```
+| Argument | Description | Example |
+|---|---|---|
+| `start_year` | Hindcast initialisation year | `1993` |
+| `member` | Ensemble member number | `3` |
+| `download` | Whether to download raw data first (`true`/`false`, default `true`) | `false` |
+
+### Ocean variables
+
+| Variable | Description | Bias corrected |
+|---|---|---|
+| `salnlvl` | Salinity on depth levels | Yes (WOA2018) |
+| `templvl` | Temperature on depth levels | Yes (WOA2018) |
+| `ubaro` | Barotropic eastward velocity | No |
+| `vbaro` | Barotropic northward velocity | No |
+| `sealv` | Sea surface height | No |
+| `uvellvl` | Eastward velocity on depth levels | No |
+| `vvellvl` | Northward velocity on depth levels | No |
+
+Bias correction files are expected in `./NorCPM_ocn_biascorr/`.
 
 ---
 
 ## Output
+
+### Atmospheric
 
 Processed files are written into the ensemble member directory:
 
@@ -122,10 +134,13 @@ Final output files follow the naming convention:
 noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>.cam.h2.<VARIABLE>_<year>.nc
 ```
 
-Backup copies of files modified during leap year insertion are saved to:
+Backup copies of files modified during leap year insertion are saved to `<memdir>/bckup/`.
+
+### Ocean
 
 ```
-<memdir>/bckup/
+noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
+  noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>.blom.hmphyglb.<VARIABLE>_<year>_<month>.nc
 ```
 
 ---
@@ -133,6 +148,5 @@ Backup copies of files modified during leap year insertion are saved to:
 ## Notes
 
 - The hindcast window covers `syear` to `syear + 6` (7 years).
-- The pipeline handles **leap years** by duplicating February 28th data and relabelling it as February 29th.
-- The first year's output is prepended with an additional timestep at `<syear>-10-31 21:00:00` to satisfy downstream model requirements.
-- Reference time for all output is anchored to `1950-01-01` with a 3-hourly time step.
+- The atmospheric pipeline handles **leap years** by duplicating February 28th data and relabelling it as February 29th.
+- Reference time for all output is anchored to `1950-01-01` with a 3-hourly timestep (atmospheric) or monthly timestep (ocean).

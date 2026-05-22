@@ -1,4 +1,13 @@
 #!/bin/bash
+# Preprocesses NorCPM ocean hindcast output for a given start year and ensemble member.
+# Optionally downloads the raw data, then extracts, bias-corrects, and calendar-fixes
+# ocean variables (temperature, salinity, currents, sea level) from BLOM output files.
+#
+# Usage: ./Preproc_norcpm_ocn.sh <start_year> <member> [download]
+#   download: true (default) or false — whether to run Download_norcpm_ocn.sh first
+#
+# Dependencies: CDO 2.0.6, NCO 5.1.3
+# Bias correction files expected in: ./NorCPM_ocn_biascorr/
 module load CDO/2.0.6-gompi-2022a
 module load NCO/5.1.3-foss-2022a
 

@@ -1,4 +1,9 @@
 #!/bin/bash
+# Transfers TOPAZ2 hindcast output from NIRD to the EDITO platform.
+# Covers BGC and PHY 3D/2D variables and CICE sea ice variables (1993–2024).
+# Requires the MinIO client (mc) at ./Progs/mc with EDITO credentials configured.
+#
+# Usage: ./Transfer_to_edito.sh
 
 local_dir=/nird/datalake/NS9481K/shuang/seaclim/output
 edito_dir=edito/seaclim/reference_simulations/hindcast

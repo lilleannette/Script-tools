@@ -1,4 +1,9 @@
 #!/bin/bash
+# Downloads NorCPM atmospheric hindcast output for a given start year and ensemble member.
+# Wraps wget_seaclim_hindcasts.sh and defaults to the cam.h2 variable group (>20N, 3-hourly).
+#
+# Usage: ./Download_norcpm_atm.sh <year> <member> [download_dir]
+#   download_dir: optional output directory, defaults to current directory
 
 if [[ $# -lt 2 ]]; then
     echo "Missing input:" 

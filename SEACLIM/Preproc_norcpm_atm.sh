@@ -1,4 +1,12 @@
 #!/bin/bash
+# Preprocesses NorCPM atmospheric hindcast output for a given start year and ensemble member.
+# Downloads raw data, extracts variables, applies bias correction, fixes the calendar,
+# inserts leap days, and prepends a synthetic first timestep to satisfy downstream requirements.
+#
+# Usage: ./Preproc_norcpm_atm.sh <start_year> <member> [atmdir]
+#   atmdir: optional root data directory, defaults to current directory
+#
+# Dependencies: CDO 2.0.6, NCO 5.1.3 (uncomment module load lines for HPC)
 #module load CDO/2.0.6-gompi-2022a
 #module load NCO/5.1.3-foss-2022a
 syear=$1

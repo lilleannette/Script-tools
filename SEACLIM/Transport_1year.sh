@@ -1,4 +1,9 @@
-#!/bin/sh 
+#!/bin/sh
+# Computes ocean section transports for a single year using m2transport.
+# Copies required config and binary files into the year directory (Y<year>/),
+# runs m2transport against the archived monthly files, then moves output back.
+#
+# Usage: ./Transport_1year.sh <year>
 
 year=$1
 

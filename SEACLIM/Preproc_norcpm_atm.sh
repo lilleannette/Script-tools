@@ -6,6 +6,7 @@ eyear=$(( $syear + 6 ))
 echo $eyear
 member=$2
 atmdir=${3:-$PWD}
+atmvars=(UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS)
 
 ./Download_norcpm_atm.sh $syear $member
 
@@ -31,7 +32,7 @@ cleanup() {
 for ((year=$syear; year<$eyear; year+=1)); do
     file1=${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${year}-11-01-10800.nc
 
-    for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+    for atmvar in "${atmvars[@]}"; do
         echo $year $atmvar
         atmname=${atmvar}_0e_to_360e_20n_to_90n
         ls $file1
@@ -41,7 +42,7 @@ done
 
 # --- Stage 2: merge, bias-correct, set grid, split by year ---
 ./Update_cal_biasfiles_fix.sh ${syear}
-for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+for atmvar in "${atmvars[@]}"; do
     # Merge all yearly extracts into one file
     cdo -O mergetime ${memdir}${atmvar}_S${syear}_*.nc ${memdir}${atmvar}_S${syear}all.nc
     cleanup ${memdir}${atmvar}_S${syear}_*.nc          # no longer needed after merge
@@ -81,7 +82,7 @@ for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
 done
 
 # --- Stage 3: prepend synthetic first timestep to the start year ---
-for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+for atmvar in "${atmvars[@]}"; do
     base=${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${syear}.nc
     cdo seldate,${syear}-11-01T03:00:00 "$base" ${memdir}tmp.nc
     cdo setdate,${syear}-11-01 ${memdir}tmp.nc ${memdir}tmp1.nc
@@ -94,7 +95,7 @@ for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
 done
 
 # --- Stage 4: clean up per-variable merge intermediates ---
-for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+for atmvar in "${atmvars[@]}"; do
     cleanup ${memdir}${atmvar}*
     # Note: this removes the _S${syear}all* files; the final per-year
     # files (cam.h2.${atmvar}_YYYY.nc) are kept — they don't match this glob
@@ -104,7 +105,7 @@ done
 for ((year=$syear; year<=$eyear; year+=1)); do
     if [ $(($year % 4)) -eq 0 ]; then
         echo ${year}
-        for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+        for atmvar in "${atmvars[@]}"; do
             base=${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${year}.nc
             # Fix calendar
             cdo setreftime,1950-01-01,0,1day -settaxis,${year}-01-01,00:00:00,3hour -setcalendar,standard \
@@ -123,7 +124,7 @@ for ((year=$syear; year<=$eyear; year+=1)); do
         done
 
     elif [ $year -eq $syear ]; then
-        for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+        for atmvar in "${atmvars[@]}"; do
             base=${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${year}.nc
             cdo -z zip_6 setreftime,1950-01-01,0,1day -settaxis,${year}-10-31,21:00:00,3hour -setcalendar,standard \
                 "$base" ${memdir}tmp_leap_${atmvar}_${year}.nc
@@ -131,7 +132,7 @@ for ((year=$syear; year<=$eyear; year+=1)); do
         done
 
     else
-        for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
+        for atmvar in "${atmvars[@]}"; do
             base=${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${year}.nc
             cdo -z zip_6 setreftime,1950-01-01,0,1day -settaxis,${year}-01-01,00:00:00,3hour -setcalendar,standard \
                 "$base" ${memdir}tmp_leap_${atmvar}_${year}.nc

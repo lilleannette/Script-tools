@@ -4,6 +4,7 @@
 # runs m2transport against the archived monthly files, then moves output back.
 #
 # Usage: ./Transport_1year.sh <year>
+#!/bin/sh 
 
 year=$1
 

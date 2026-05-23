@@ -1,0 +1,8 @@
+bash
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Emacs backup
+*~

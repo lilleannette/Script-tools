@@ -23,8 +23,8 @@ if [[ $# -lt 2 ]]; then
     exit 1
 fi
 
-SYEARS=$(echo $1 | tr ',' ' ')
-MEMBERS=$(echo $2 | tr ',' ' ')
+SYEARS=$(echo "$1" | tr ',' ' ')
+MEMBERS=$(echo "$2" | tr ',' ' ')
 
 exp=noresm2-mm-seaclim_hindcast
 atmvars=(UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS)
@@ -34,7 +34,7 @@ SSH_SOCKET=/tmp/ssh_mux_${REMOTE_USER}_${REMOTE_HOST}
 SSH_OPTS="-o ControlMaster=auto -o ControlPath=${SSH_SOCKET} -o ControlPersist=yes"
 
 echo "Opening SSH connection to ${REMOTE_HOST} (authenticate once here)..."
-ssh $SSH_OPTS -N ${REMOTE_USER}@${REMOTE_HOST} &
+ssh "$SSH_OPTS" -N ${REMOTE_USER}@${REMOTE_HOST} &
 SSH_PID=$!
 sleep 10  # give the master connection time to establish
 
@@ -59,10 +59,10 @@ for syear in $SYEARS; do
             for atmvar in "${atmvars[@]}"; do
                 file=${memdir}/${exp}_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${year}.nc
                 if [ -f "$file" ]; then
-                    echo "Copying: $(basename $file)"
+                    echo "Copying: $(basename "$file")"
                     scp -o ControlPath=${SSH_SOCKET} "$file" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
                 else
-                    echo "WARNING: File not found, skipping: $(basename $file)" >&2
+                    echo "WARNING: File not found, skipping: $(basename "$file")" >&2
                 fi
             done
         done

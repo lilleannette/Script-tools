@@ -1,15 +1,4 @@
 #!/bin/bash
-<<<<<<< HEAD
-#module load CDO/2.0.6-gompi-2022a
-#module load NCO/5.1.3-foss-2022a
-syear=$1
-eyear=(( $syear + 6))
-member=$3
-
-echo $syear $eyear $memeber
-
-"./Download_norcpm_ocn.sh $syear $member
-=======
 # Preprocesses NorCPM ocean hindcast output for a given start year and ensemble member.
 # Optionally downloads the raw data, then extracts, bias-corrects, and calendar-fixes
 # ocean variables (temperature, salinity, currents, sea level) from BLOM output files.
@@ -59,7 +48,7 @@ OCN_VARS_20N=(uvellvl vvellvl)   # ocean variables in the dataset > 20N
 OCN_VARS_ALL=("${OCN_VARS_WBS[@]}" "${OCN_VARS_NBS[@]}")
 
 Testing=false
-# For testing with just few varuables
+# For testing with just few variables
 if $Testing; then
     OCN_VARS_WBS=(salnlvl)   # ocean variables to process with bias correction 
     OCN_VARS_NBS=(sealv)  # ocean variables to process without bias correction
@@ -67,18 +56,11 @@ if $Testing; then
     OCN_VARS_20N=()   # ocean variables in the dataset > 20N
     OCN_VARS_ALL=("${OCN_VARS_WBS[@]}" "${OCN_VARS_NBS[@]}")
 fi
->>>>>>> f4bbdc75897c464ff3fb0ec3b970fabd37accb5d
 
 memstr=`echo -n 00${member} | tail -3c`
 exp=noresm2-mm-seaclim_hindcast
 memdir=${exp}/${exp}_${syear}1101_mem${memstr}
 
-<<<<<<< HEAD
-for ((year=syear; year<=eyear; year+=1)); do
-    if $year == $syear;
-        smon=11; emon=12
-    elif $year == $eyear;
-=======
 # Helper: delete files and warn if deletion fails
 cleanup() {
     for f in "$@"; do
@@ -91,57 +73,12 @@ for ((year=syear; year<=eyear; year+=1)); do
     if [ $year -eq $syear ]; then
         smon=11; emon=12
     elif [ $year -eq $eyear ]; then
->>>>>>> f4bbdc75897c464ff3fb0ec3b970fabd37accb5d
         smon=1; emon=2
     else
         smon=1; emon=12
     fi
 
     for ((mon=smon; mon<=emon; mon+=1)); do
-<<<<<<< HEAD
-       monstr=`echo -n 0${member} | tail -2c`
-       monfile=${memdir}/${exp}_${syear}1101_mem${memstr}.cam.h2.${year}-11-01-10800.nc
-
-       #take out each variable
-       for ocnvar in salnlvl templvl ubaro vbaro uvellvl uvellvl sealv; do
-        echo $year $mon $ocnvar
-        atmname=${atmvar}_0e_to_360e_20n_to_90n
-
-    	# 1 take out each variable
-        # 2 split the files in years
-	    # 3 merge the year
-	    ls $file1
-        cdo selvar,$atmname $file1 ${memdir}${atmvar}_S${syear}_${year}.nc
-    done
-done
-
-# me
-for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
-    cdo mergetime ${memdir}${atmvar}_S${syear}_*.nc ${memdir}${atmvar}_S${syear}_all.nc
-    ncks -C -O -x -v bnds,time_bnds ${memdir}${atmvar}_S${syear}_all.nc ${memdir}${atmvar}_S${syear}_all_ntb.nc
-    cdo setgrid,cdogrid_norcpmforce ${memdir}${atmvar}_S${syear}_all_ntb.nc ${memdir}${atmvar}_S${syear}_all_ntb_grid.nc
-    cdo splityear ${memdir}${atmvar}_S${syear}_all_ntb_grid.nc ${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_
-done
-
-
-# add the first time-step to the first year:
-for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
-    cdo seldate,${syear}-11-01T03:00:00 ${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${syear}.nc ${memdir}tmp.nc
-    cdo setdate,${syear}-11-01 ${memdir}tmp.nc ${memdir}tmp1.nc
-    cdo settime,00:00:00 ${memdir}tmp1.nc ${memdir}tmp2.nc
-    cdo setdate,${syear}-10-31 ${memdir}tmp.nc ${memdir}tmp3.nc
-    cdo settime,21:00:00 ${memdir}tmp3.nc ${memdir}tmp4.nc
-    cdo mergetime ${memdir}tmp4.nc ${memdir}tmp2.nc ${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${syear}.nc ${memdir}tmp5.nc
-    mv ${memdir}tmp5.nc ${memdir}noresm2-mm-seaclim_hindcast_${syear}1101_mem${memstr}.cam.h2.${atmvar}_${syear}.nc
-    rm ${memdir}tmp*.nc
-done
-
-# clear up
-for atmvar in UAS VAS TREFHT QREFHT PSL PRECT FSDS FLDS; do
-    rm ${memdir}${atmvar}*
-done
-    
-=======
         monstr=`echo -n 0${mon} | tail -2c`
         monfile20n=${memdir}/${exp}_${syear}1101_mem${memstr}.blom.hmphy20n.${year}-${monstr}.nc
         monfileglb=${memdir}/${exp}_${syear}1101_mem${memstr}.blom.hmphyglb.${year}-${monstr}.nc
@@ -237,22 +174,73 @@ for ((year=syear; year<=eyear; year+=1)); do
     else
         smon=1; emon=12
     fi
-    smonstr=`echo -n 0${smon} | tail -2c`
-    for ocnvar in "${OCN_VARS_ALL[@]}"; do
-        for ((mon=smon; mon<=emon; mon+=1)); do
-	    monstr=`echo -n 0${mon} | tail -2c`
-	    cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb \
-		${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_ntb.nc \
-		${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_extr.nc
-            cdo setreftime,1950-01-01,0,1day -settaxis,${year}-${monstr}-15,00:00:00,1mon \
-	        -setcalendar,standard \
-	        ${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_extr.nc \
-	        ${memdir}/${exp}_${syear}1101_mem${memstr}.blom.hmphyglb.${ocnvar}_${year}_${monstr}.nc
-	    # not longer needed after remapnn and setreftime
-            cleanup ${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_extr.nc
-            cleanup ${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_ntb.nc
-	done
+
+    for ((mon=smon; mon<=emon; mon+=1)); do
+        monstr=$(echo -n 0${mon} | tail -2c)
+
+	# Paths to intermediate processed single-variable files from the previous loops
+	t_file="${memdir}/templvl_S${syear}_${year}_${monstr}_ntb.nc"
+        s_file="${memdir}/salnlvl_S${syear}_${year}_${monstr}_ntb.nc"
+        ssh_file="${memdir}/sealv_S${syear}_${year}_${monstr}_ntb.nc"
+        ubaro_file="${memdir}/ubaro_S${syear}_${year}_${monstr}_ntb.nc"
+        vbaro_file="${memdir}/vbaro_S${syear}_${year}_${monstr}_ntb.nc"
+	# Regional velocity grids (>20N)
+        u_file="${memdir}/uvellvl_S${syear}_${year}_${monstr}_ntb.nc"
+        v_file="${memdir}/vvellvl_S${syear}_${year}_${monstr}_ntb.nc"
+
+        echo "Aligning grids and remapping regional velocities to global domain for ${year}-${monstr}..."
+	# 1. Standard global parameters get set to the global grid template
+        cdo setgrid,cdogrid_norcpm_ocn_glb "$t_file" "${t_file}_grid.nc"
+        cdo setgrid,cdogrid_norcpm_ocn_glb "$s_file" "${s_file}_grid.nc"
+        cdo setgrid,cdogrid_norcpm_ocn_glb "$ssh_file" "${ssh_file}_grid.nc"
+        cdo setgrid,cdogrid_norcpm_ocn_glb "$ubaro_file" "${ubaro_file}_grid.nc"
+        cdo setgrid,cdogrid_norcpm_ocn_glb "$vbaro_file" "${vbaro_file}_grid.nc"
+	# 2. CRITICAL: Remap the regional velocities (>20N) onto the Global grid footprint
+        # Using remapnn preserves the structure while filling non-covered areas safely with missing values.
+        cdo remapnn,cdogrid_norcpm_ocn_glb "$u_file" "${u_file}_grid.nc"
+        cdo remapnn,cdogrid_norcpm_ocn_glb "$v_file" "${v_file}_grid.nc"
+
+	echo "Extrapolating missing data using nearest neighbor for ${year}-${monstr}..."
+
+	# 3. Apply setmisstonn to fill land/missing data points for each individual file
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$t_file" "${t_file}_extr.nc"
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$s_file" "${s_file}_extr.nc"
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$ssh_file" "${ssh_file}_extr.nc"
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$u_file" "${u_file}_extr.nc"
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$v_file" "${v_file}_extr.nc"
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$ubaro_file" "${ubaro_file}_extr.nc"
+        cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$vbaro_file" "${vbaro_file}_extr.nc"
+
+        # Define the target unified file name
+        merged_out="${memdir}/${exp}_${syear}1101_mem${memstr}.blom.hmphyglb.merged_${year}-${monstr}.nc"
+
+        echo "Merging standard physical arrays..."
+
+        # 4. Merge perfectly sized fields together and translate names to the CMIP syntax
+        cdo -O -merge \
+            -chname,templvl,thetao "${t_file}_extr.nc" \
+            -chname,salnlvl,so "${s_file}_extr.nc" \
+            -chname,sealv,zos "${ssh_file}_extr.nc" \
+            -chname,uvellvl,uo "${u_file}_extr.nc" \
+            -chname,vvellvl,vo "${v_file}_extr.nc" \
+            -chname,ubaro,ubaro_netcdf "${ubaro_file}_extr.nc" \
+            -chname,vbaro,vbaro_netcdf "${vbaro_file}_extr.nc" \
+            "$merged_out"
+
+	# 5. Fix time-axis rules cleanly
+        cdo -O setreftime,1950-01-01,0,1day -settaxis,${year}-${monstr}-15,00:00:00,1mon \
+            -setcalendar,standard "$merged_out" "${merged_out}.tmp"
+        mv "${merged_out}.tmp" "$merged_out"
+
+	# Clean up intermediate scratch layers
+        cleanup "$t_file" "${t_file}_grid.nc" "${t_file}_extr.nc"
+        cleanup "$s_file" "${s_file}_grid.nc" "${s_file}_extr.nc"
+        cleanup "$ssh_file" "${ssh_file}_grid.nc" "${ssh_file}_extr.nc"
+        cleanup "$u_file" "${u_file}_grid.nc" "${u_file}_extr.nc"
+        cleanup "$v_file" "${v_file}_grid.nc" "${v_file}_extr.nc"
+        cleanup "$ubaro_file" "${ubaro_file}_grid.nc" "${ubaro_file}_extr.nc"
+        cleanup "$vbaro_file" "${vbaro_file}_grid.nc" "${vbaro_file}_extr.nc"
+
     done
 done
 
->>>>>>> f4bbdc75897c464ff3fb0ec3b970fabd37accb5d

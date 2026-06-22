@@ -26,6 +26,9 @@ DOWNLOAD_DIR="${3:-.}"   # or an absolute path like "/data/seaclim"
 # variable_group="cam.h1"  # Global, daily
 variable_group="cam.h2"    # >20N, 3-hourly
 
+#echo ./wget_seaclim_hindcasts.sh $DOWNLOAD_DIR $year $member $variable_group
+#./wget_seaclim_hindcasts.sh "$DOWNLOAD_DIR" "$year" "$member" "$variable_group"
+
 # --- Resolve script location ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

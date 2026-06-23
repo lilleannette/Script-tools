@@ -8,11 +8,11 @@ A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting a
 
 | Script | Description |
 |---|---|
-| `wget_seaclim_hindcasts.sh` | Downloads raw NorCPM hindcast files from the Sigma2 server |
+| `wget_seaclim_hindcasts.sh` | Downloads NorCPM hindcast files from the Sigma2 server |
 | `Download_norcpm_atm.sh` | Wraps `wget_seaclim_hindcasts.sh` for atmospheric output (cam.h2, >20N, 3-hourly) |
 | `Download_norcpm_ocn.sh` | Wraps `wget_seaclim_hindcasts.sh` for ocean output (global and >20N monthly) |
-| `Preproc_norcpm_atm.sh` | Main atmospheric pipeline — extract, bias-correct, calendar-fix, insert leap days |
-| `Preproc_norcpm_ocn.sh` | Main ocean pipeline — extract, bias-correct, calendar-fix ocean variables |
+| `Preproc_norcpm_atm.sh` | Main atmospheric preprocessing — extract, bias-correct, calendar-fix, insert leap days |
+| `Preproc_norcpm_ocn.sh` | Main ocean preprocessing — extract, bias-correct, calendar-fix ocean variables |
 | `Update_cal_biasfiles_fix.sh` | Fixes calendar metadata on atmospheric bias correction reference files |
 | `Transport_1year.sh` | Computes ocean section transports for a single year using `m2transport` |
 | `Transfer_to_edito.sh` | Transfers processed TOPAZ2 hindcast output from NIRD to the EDITO platform |
@@ -26,11 +26,12 @@ A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting a
 | [CDO](https://code.mpimet.mpg.de/projects/cdo) | 2.0.6-gompi-2022a | NetCDF file manipulation and calendar operations |
 | [NCO](https://nco.sourceforge.net/) | 5.1.3-foss-2022a | Variable subsetting and attribute editing |
 
-> **HPC users:** Uncomment the `module load` lines at the top of the scripts to load these tools via the module system.
+> **HPC users:** Uncomment the `module load` lines at the top of the scripts to load these tools via the module system 
+
 
 ---
 
-## Atmospheric Pipeline
+## Atmospheric preprocessing
 
 ### Usage
 
@@ -88,7 +89,7 @@ Bias correction reference files are located in the parent of the member director
 
 ---
 
-## Ocean Pipeline
+## Ocean preprocessin
 
 ### Usage
 
@@ -150,3 +151,4 @@ noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
 - The hindcast window covers `syear` to `syear + 6` (7 years).
 - The atmospheric pipeline handles **leap years** by duplicating February 28th data and relabelling it as February 29th.
 - Reference time for all output is anchored to `1950-01-01` with a 3-hourly timestep (atmospheric) or monthly timestep (ocean).
+- Our experince was that the processing of the 3-hourly atmopheric forcing using CDO was extremely slow on the HPC, so if this is the case, we recommend processing using python instead.

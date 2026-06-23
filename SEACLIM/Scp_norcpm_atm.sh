@@ -35,8 +35,8 @@ SSH_OPTS="-o ControlMaster=auto -o ControlPath=${SSH_SOCKET} -o ControlPersist=y
 
 echo "Opening SSH connection to ${REMOTE_HOST} (authenticate once here)..."
 ssh "$SSH_OPTS" -N ${REMOTE_USER}@${REMOTE_HOST} &
-SSH_PID=$!
-sleep 10  # give the master connection time to establish
+
+sleep 15  # give the master connection time to establish
 
 cleanup() {
     echo "Closing SSH connection..."

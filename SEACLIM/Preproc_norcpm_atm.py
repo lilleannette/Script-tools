@@ -258,8 +258,8 @@ def process_var_batch(atmvar, syear, eyear, memdir, memstr, biasdir, griddir):
     # Bias correction
     ds_merged = bias_correct(ds_merged, atmvar, biasdir)
     
-    # Remove bounds
-    vars_to_drop = [v for v in ['bnds', 'time_bnds'] if v in ds_merged.data_vars]
+    # Remove bounds and old lat/lon
+    vars_to_drop = [v for v in ['bnds', 'time_bnds', 'lat', 'lon'] if v in ds_merged.data_vars]
     if vars_to_drop:
         ds_merged = ds_merged.drop_vars(vars_to_drop)
     

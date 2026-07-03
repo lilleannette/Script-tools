@@ -2,6 +2,7 @@
 
 # Usage:
 # ./run_preproc.sh 2005 2006 2007
+# It does the preprocessing for members 1 to 4 of the years given
 
 #SBATCH --job-name Downocn   ## Name of the job
 #SBATCH --output slurm-%j.out   ## Name of the output-script (%j will be replaced with job number)

@@ -67,6 +67,11 @@ if [ ! -d "$NORCPM_DIR" ]; then
     mkdir -p "$NORCPM_DIR"
     cp /cluster/projects/nn9481k/Climate_downscaling/Example_Files/NorCPM2_climatology/noresm2-mm-seaclim_hindcast.blom.hmphyglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_templvl.nc "$NORCPM_DIR"
     cp /cluster/projects/nn9481k/Climate_downscaling/Example_Files/NorCPM2_climatology/noresm2-mm-seaclim_hindcast.blom.hmphyglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_salnlvl.nc "$NORCPM_DIR"
+    cp /cluster/projects/nn9481k/Climate_downscaling/Example_Files/NorCPM2_climatology/noresm2-mm-seaclim_hindcast.blom.hmphyglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_sealv.nc "$NORCPM_DIR"
+    cp /cluster/projects/nn9481k/Climate_downscaling/Example_Files/NorCPM2_climatology/noresm2-mm-seaclim_hindcast.blom.hmphyglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_ubaro.nc "$NORCPM_DIR"
+    cp /cluster/projects/nn9481k/Climate_downscaling/Example_Files/NorCPM2_climatology/noresm2-mm-seaclim_hindcast.blom.hmphyglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_vbaro.nc "$NORCPM_DIR"
+    cp /cluster/projects/nn9481k/Climate_downscaling/Example_Files/NorCPM2_climatology/noresm2-mm-seaclim_hindcast.blom.hmphy20n.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10.nc "$NORCPM_DIR"
+    cp /cluster/home/arnelt/NERSC-HYCOM-CICE/TP2a0.10/topo/cice_grid.nc "$NORCPM_DIR"
     URL="https://ns11071k.web.sigma2.no/shared/seaclim/wp2/calibration/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10.nc"
     URLgrid="https://ns11071k.web.sigma2.no/shared/seaclim/wp2/aux/NorESM2-MM_ocean_grid.nc"
     if command -v wget &> /dev/null; then
@@ -74,16 +79,7 @@ if [ ! -d "$NORCPM_DIR" ]; then
         wget -q --show-progress -P "$NORCPM_DIR" "$URLgrid"
         
         ncks -A -v plon,plat "$NORCPM_DIR/NorESM2-MM_ocean_grid.nc" "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10.nc"
-        
-        cp "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10.nc" \
-        "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_temp.nc"
-        cdo -s -O \
-        setreftime,1950-01-01,0,1day \
-        -settaxis,${SYEAR}-11-15,00:00:00,1mon \
-        -setcalendar,standard \
-        "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_temp.nc" \
-        "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10.nc"
-        rm -rf "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmbgcglb.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10_temp.nc"
+        ncks -A -v ulon,ulat,vlon,vlat "$NORCPM_DIR/NorESM2-MM_ocean_grid.nc" "$NORCPM_DIR/noresm2-mm-seaclim_hindcast.blom.hmphy20n.clim.1993-2024.startmonth11.leadmonth1-64.mem1-10.nc"
     else
         echo "ERROR: wget not found. Please download the file manually to $NORCPM_DIR."
         exit 1
@@ -99,12 +95,14 @@ mkdir -p "$TMPDIR"
 # ref_name:norcpm_name
 VARMAP=(
     "thetao:templvl"
-    "so:salnlvl"
-    "no3:no3lvl"
-    "si:silvl"
-    "o2:o2lvl"
-    "dissic:dissiclvl"
-    "TA:talklvl"
+    #"so:salnlvl"
+    #"no3:no3lvl"
+    #"si:silvl"
+    #"o2:o2lvl"
+    #"dissic:dissiclvl"
+    #"TA:talklvl"
+    #"po4:po4lvl"
+    #"zos:sealv"
 )
 
 # Expected files: ${REFDIR}/clim_1993_2024_MM.nc
@@ -138,12 +136,7 @@ for entry in "${VARMAP[@]}"; do
     echo "  Step 1: Extracting ${REF_VAR} from reference files..."
     
     for mm in $(seq -w 1 12); do
-        reffile="${REFDIR}/${REF_PATTERN}_${mm}.nc"
-        if [ ! -f "$reffile" ]; then
-            echo "  WARNING: Reference file not found: $reffile"
-            continue
-        fi
-        ncatted -O -a coordinates,${REF_VAR},o,c,"longitude latitude" "$reffile" "${TMPDIR}/${REF_PATTERN}_${mm}_corr.nc"
+        ncatted -O -a coordinates,${REF_VAR},o,c,"longitude latitude" "${REFDIR}/${REF_PATTERN}_${mm}.nc" "${TMPDIR}/${REF_PATTERN}_${mm}_corr.nc"
         cdo -s selvar,${REF_VAR} "${TMPDIR}/${REF_PATTERN}_${mm}_corr.nc" \
             "${TMPDIR}/${REF_VAR}_month_${mm}.nc"
     done
@@ -224,29 +217,29 @@ for entry in "${VARMAP[@]}"; do
         fi
     done
 
-    # Horizontal remapping (bilinear interpolation)
-    echo "    Horizontal remapping..."
-    cdo -s -O remapbil,${NORCPM_FILE} \
-        "${TMPDIR}/${REF_VAR}_64M_taxis.nc" \
-        "${TMPDIR}/${REF_VAR}_64M_hregrid.nc"
-
-    cleanup "${TMPDIR}/${REF_VAR}_64M_taxis.nc"
-
     # Extract target depth levels for the specific variable from NorCPM file
     levels=$(cdo -s showlevel -selname,${NCP_VAR} "$NORCPM_FILE" 2>/dev/null || true)
     TARGET_LEVELS=$(echo $levels | tr ' ' ',')
-    if [ -n "$TARGET_LEVELS" ] && [ "$TARGET_LEVELS" != "," ]; then
+    if [ -n "$TARGET_LEVELS" ] && [ "$TARGET_LEVELS" != "," ] && [ "$REF_VAR" != "zos" ]; then
         echo "    Vertical interpolation to NorCPM levels..."
         cdo -s -O intlevel,${TARGET_LEVELS} \
-            "${TMPDIR}/${REF_VAR}_64M_hregrid.nc" \
+            "${TMPDIR}/${REF_VAR}_64M_taxis.nc" \
             "${TMPDIR}/${REF_VAR}_64M_regrid.nc"
-        cleanup "${TMPDIR}/${REF_VAR}_64M_hregrid.nc"
+        cleanup "${TMPDIR}/${REF_VAR}_64M_taxis.nc"
     else
         echo "    Could not extract depth levels. Skipping vertical interpolation."
-        mv "${TMPDIR}/${REF_VAR}_64M_hregrid.nc" \
+        mv "${TMPDIR}/${REF_VAR}_64M_taxis.nc" \
            "${TMPDIR}/${REF_VAR}_64M_regrid.nc"
     fi
+    
+# Horizontal remapping (bilinear interpolation)
+    echo "    Horizontal remapping..."
+    cdo -s -O remapbil,${NORCPM_FILE} \
+        "${TMPDIR}/${REF_VAR}_64M_regrid.nc" \
+        "${TMPDIR}/${REF_VAR}_64M_hregrid.nc"
 
+    cleanup "${TMPDIR}/${REF_VAR}_64M_regrid.nc"
+    
     # Step 6: Compute bias = NorCPM_clim - reference_regridded
     echo "  Step 6: Computing bias..."
 
@@ -256,17 +249,33 @@ for entry in "${VARMAP[@]}"; do
     cdo -s -O selvar,${NCP_VAR} "$NORCPM_FILE" \
         "${TMPDIR}/${NCP_VAR}_norcpm.nc"
 
-    # Subtract: bias = model - reference
-    cdo -s -O sub \
+    cdo -s -O \
+        setreftime,1950-01-01,0,1day \
+        -settaxis,${SYEAR}-11-15,00:00:00,1mon \
+        -setcalendar,standard \
         "${TMPDIR}/${NCP_VAR}_norcpm.nc" \
-        "${TMPDIR}/${REF_VAR}_64M_regrid.nc" \
-        "$BIAS_OUT"
+        "${TMPDIR}/${NCP_VAR}_norcpm_temp.nc"
 
     cleanup "${TMPDIR}/${NCP_VAR}_norcpm.nc"
+
+    # Correct units
+    if [[ "$REF_VAR" == "no3" || "$REF_VAR" == "si" || "$REF_VAR" == "o2" || "$REF_VAR" == "po4" ]]; then
+        cdo -mulc,0.001 "${TMPDIR}/${REF_VAR}_64M_hregrid.nc" "${TMPDIR}/${REF_VAR}_64M_unit.nc"
+        mv "${TMPDIR}/${REF_VAR}_64M_unit.nc" "${TMPDIR}/${REF_VAR}_64M_hregrid.nc"
+    fi
+
+    # Subtract: bias = model - reference
+    cdo -s -O sub \
+        "${TMPDIR}/${NCP_VAR}_norcpm_temp.nc" \
+        "${TMPDIR}/${REF_VAR}_64M_hregrid.nc" \
+        "$BIAS_OUT"
+
+    cleanup "${TMPDIR}/${NCP_VAR}_norcpm_temp.nc"
     echo "  -> Bias file written: $BIAS_OUT"
 
     # Cleanup remaining temp files for this variable
-    cleanup "${TMPDIR}/${REF_VAR}_64M_regrid.nc"
+    cleanup "${TMPDIR}/${REF_VAR}_64M_hregrid.nc"
+    cleanup "${TMPDIR}/${REF_VAR}_64M_unit.nc"
 
     echo "  Done with ${REF_VAR}/${NCP_VAR}."
     echo ""

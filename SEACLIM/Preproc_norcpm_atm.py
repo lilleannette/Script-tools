@@ -172,7 +172,8 @@ def bias_correct(ds, atmvar, biasdir):
     if atmvar in ["FSDS", "TREFHT"]:
         return ds
     elif atmvar == "PRECT":
-        ds_bias = xr.open_dataset(f"{biasdir}RATIO_PRECT_nobc_vs_bc_cal.nc", use_cftime=True)
+        time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+        ds_bias = xr.open_dataset(f"{biasdir}RATIO_PRECT_nobc_vs_bc_cal.nc", decode_times=time_coder)
 
         # Aligning bias dates to the years we are working with
         ds_bias["time"] = [t.replace(year=t.year + ds.time.dt.year.values[0] - 2003) for t in ds_bias.time.values]
@@ -180,7 +181,8 @@ def bias_correct(ds, atmvar, biasdir):
         ds[list(ds.data_vars)[0]] = ds[list(ds.data_vars)[0]] * ds_bias[list(ds_bias.data_vars)[0]][0]
         ds_bias.close()
     elif atmvar == "QREFHT":
-        ds_bias = xr.open_dataset(f"{biasdir}bias_NorCPM_ERA5_64M_{atmvar}_20n_cal.nc", use_cftime=True)
+        time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+        ds_bias = xr.open_dataset(f"{biasdir}bias_NorCPM_ERA5_64M_{atmvar}_20n_cal.nc", decode_times=time_coder)
         
         # Aligning bias dates to the years we are working with
         ds_bias["time"] = [t.replace(year=t.year + ds.time.dt.year.values[0] - 2003) for t in ds_bias.time.values]
@@ -189,7 +191,8 @@ def bias_correct(ds, atmvar, biasdir):
         ds[list(ds.data_vars)[0]] = (ds[list(ds.data_vars)[0]] - ds_bias[list(ds_bias.data_vars)[0]]).clip(min=6.0e-5)
         ds_bias.close()
     else:
-        ds_bias = xr.open_dataset(f"{biasdir}bias_NorCPM_ERA5_64M_{atmvar}_20n_cal.nc", use_cftime=True)
+        time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+        ds_bias = xr.open_dataset(f"{biasdir}bias_NorCPM_ERA5_64M_{atmvar}_20n_cal.nc", decode_times=time_coder)
         
         # Aligning bias dates to the years we are working with
         ds_bias["time"] = [t.replace(year=t.year + ds.time.dt.year.values[0] - 2003) for t in ds_bias.time.values]
@@ -210,7 +213,7 @@ def process_var_batch(atmvar, syear, eyear, memdir, memstr, biasdir, griddir):
     # Load source files and merge
     source_files = [
         f"{memdir}noresm2-mm-seaclim_hindcast_{syear}1101_mem{memstr}.cam.h2.{year}-11-01-10800.nc"
-        for year in range(syear, eyear + 1)
+        for year in range(syear, eyear)
     ]
     existing_files = [f for f in source_files if os.path.exists(f)]
     varname = f"{atmvar}_0e_to_360e_20n_to_90n"
@@ -219,38 +222,22 @@ def process_var_batch(atmvar, syear, eyear, memdir, memstr, biasdir, griddir):
         print(f"    WARNING: No data files found for {atmvar}")
         return
 
-    if HAS_DASK and len(existing_files) > 1:
-        def _preprocess(ds):
+    dsets = []
+    for src_file in existing_files:
+        try:
+            time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
+            ds = xr.open_dataset(src_file, decode_times=time_coder)
             if varname in ds.data_vars:
-                return ds[[varname]]
-            return ds
+                dsets.append(ds[[varname]])
+            ds.close()
+        except Exception:
+            continue
 
-        ds_merged = xr.open_mfdataset(
-            existing_files,
-            concat_dim='time',
-            combine='by_coords',
-            preprocess=_preprocess,
-            use_cftime=True,
-            parallel=True,
-            chunks={'time': 256}
-        )
-    else:
-        # Fallback: open files one-by-one and concat
-        dsets = []
-        for src_file in existing_files:
-            try:
-                ds = xr.open_dataset(src_file, use_cftime=True)
-                if varname in ds.data_vars:
-                    dsets.append(ds[[varname]])
-                ds.close()
-            except Exception:
-                continue
+    if not dsets:
+        print(f"    WARNING: No data found for {atmvar}")
+        return
 
-        if not dsets:
-            print(f"    WARNING: No data found for {atmvar}")
-            return
-
-        ds_merged = xr.concat(dsets, dim='time')
+    ds_merged = xr.concat(dsets, dim='time')
 
     # Remove spurious timestep (indexed 15559)
     ds_merged = ds_merged.isel(time=[i for i in range(len(ds_merged.time)) if i != 15559])
@@ -259,13 +246,15 @@ def process_var_batch(atmvar, syear, eyear, memdir, memstr, biasdir, griddir):
     ds_merged = bias_correct(ds_merged, atmvar, biasdir)
     
     # Remove bounds and old lat/lon
-    vars_to_drop = [v for v in ['bnds', 'time_bnds', 'lat', 'lon'] if v in ds_merged.data_vars]
+    vars_to_drop = [v for v in ['bnds', 'time_bnds'] if v in ds_merged.data_vars]
     if vars_to_drop:
         ds_merged = ds_merged.drop_vars(vars_to_drop)
     
     # Apply grid
     if os.path.exists(f"{griddir}cdogrid_norcpm_atm_20n"):
         ds_merged = apply_grid(ds_merged, f"{griddir}cdogrid_norcpm_atm_20n")
+
+    ds_merged = ds_merged.drop_vars(['lon','lat'])
     
     # Split by year and process calendar/leap days
     for year in range(syear, eyear + 1):
@@ -280,39 +269,32 @@ def process_var_batch(atmvar, syear, eyear, memdir, memstr, biasdir, griddir):
         # Convert time to Gregorian and build regular axis
         is_leap = (year % 4 == 0) and (year % 100 != 0 or year % 400 == 0)
         
-        if year == syear:
-            start_time = cftime.DatetimeGregorian(year, 10, 31, 21, 0, 0)
-        else:
-            start_time = cftime.DatetimeGregorian(year, 1, 1, 0, 0, 0)
-        
-        ds_year['time'] = make_regular_time_axis(start_time, len(ds_year.time), hours=3)
-        
-        # Add leap day if needed
+        # Handle leap day if needed (inserting it into the raw noleap data first)
         if is_leap and year != syear:
-            months = np.array([t.month for t in ds_year.time.values])
-            days = np.array([t.day for t in ds_year.time.values])
-            idx_feb28 = np.where((months == 2) & (days == 28))[0]
-            if idx_feb28.size > 0:
-                ds_feb28 = ds_year.isel(time=idx_feb28)
-                ds_feb29 = ds_feb28.copy()
-                ds_feb29['time'] = np.array([
-                    cftime.DatetimeGregorian(year, 2, 29, t.hour, t.minute, t.second)
-                    for t in ds_feb29.time.values
-                ])
-                ds_year = xr.concat([ds_year, ds_feb29], dim='time')
-                ds_year = ds_year.sortby('time')
+            times_noleap = ds_year.time.values
+            mask_part1 = np.array([t.month < 3 for t in times_noleap])
+            ds_part1 = ds_year.isel(time=mask_part1)
+            ds_part2 = ds_year.isel(time=~mask_part1)
+            
+            mask_feb28 = np.array([t.month == 2 and t.day == 28 for t in ds_part1.time.values])
+            ds_feb28 = ds_part1.isel(time=mask_feb28)
+            
+            ds_year = xr.concat([ds_part1, ds_feb28, ds_part2], dim='time')
         
         # Add synthetic first timestep for start year
         if year == syear:
-            target_idx = np.argmin(np.abs(
-                np.array([t.hour for t in ds_year.time.values]) - 3
-            ))
-            ds_first = ds_year.isel(time=target_idx)
-            ds_step1 = ds_first.copy()
-            ds_step1['time'] = np.array([cftime.DatetimeGregorian(syear, 11, 1, 0, 0, 0)])
-            ds_step2 = ds_first.copy()
-            ds_step2['time'] = np.array([cftime.DatetimeGregorian(syear, 10, 31, 21, 0, 0)])
-            ds_year = xr.concat([ds_step2, ds_step1, ds_year], dim='time')
+            ds_first = ds_year.isel(time=0)
+            ds_year = xr.concat([ds_first, ds_first, ds_year], dim='time')
+            start_time = cftime.DatetimeGregorian(year, 10, 31, 21, 0, 0)
+        else:
+            start_time = cftime.DatetimeGregorian(year, 1, 1, 0, 0, 0)
+            
+        # Build and assign regular time axis
+        ds_year['time'] = make_regular_time_axis(start_time, len(ds_year.time), hours=3)
+        
+        # Ensure dimension order is (time, ...) before writing
+        desired_order = ['time'] + [d for d in ds_year.dims if d != 'time']
+        ds_year = ds_year.transpose(*desired_order)
         
         # Write output
         print(f"Writing {atmvar} file for {year}...")
@@ -327,7 +309,7 @@ def main():
         sys.exit(1)
     
     syear = int(sys.argv[1])
-    eyear = syear + 5
+    eyear = syear + 6
     print(f"End year: {eyear}")
     
     member = int(sys.argv[2])

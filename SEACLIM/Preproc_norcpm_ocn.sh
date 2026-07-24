@@ -41,8 +41,8 @@ if $download; then
 fi
 
 # Define which varibales to process
-OCN_VARS_WBS=(salnlvl templvl sealv)   # ocean variables to process with bias correction
-OCN_VARS_NBS=(ubaro vbaro uvellvl vvellvl)  # ocean variables to process without bias correction
+OCN_VARS_WBS=(salnlvl templvl sealv ubaro vbaro uvellvl vvellvl)   # ocean variables to process with bias correction
+OCN_VARS_NBS=()  # ocean variables to process without bias correction
 OCN_VARS_GLB=(salnlvl templvl ubaro vbaro sealv)  # ocean variables in the global datasat
 OCN_VARS_20N=(uvellvl vvellvl)   # ocean variables in the dataset > 20N
 OCN_VARS_ALL=("${OCN_VARS_WBS[@]}" "${OCN_VARS_NBS[@]}")

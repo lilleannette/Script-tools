@@ -314,6 +314,7 @@ def main():
     
     member = int(sys.argv[2])
     atmdir = sys.argv[3] if len(sys.argv) > 3 else os.getcwd()
+    downloaddir = atmdir
     atmdir = f"{atmdir}/noresm2-mm-seaclim_hindcast/"
     
     # Configuration paths
@@ -337,7 +338,7 @@ def main():
             download_script = os.path.join(os.getcwd(), 'Download_norcpm_atm.sh')
 
         if os.path.exists(download_script):
-            ret = subprocess.run(['bash', download_script, str(syear), str(member)])
+            ret = subprocess.run(['bash', download_script, str(syear), str(member), str(downloaddir)])
             if ret.returncode != 0:
                 print(f"ERROR: downloader script failed (rc={ret.returncode})", file=sys.stderr)
                 sys.exit(1)

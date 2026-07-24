@@ -1,6 +1,6 @@
 # SEACLIM NorCPM Hindcast Post-Processing
 
-A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting atmospheric and ocean output from NorESM2-MM seasonal climate hindcast runs.
+A set of scripts for downloading, bias-correcting, and calendar-adjusting atmospheric and ocean output from NorESM2-MM seasonal climate hindcast runs.
 
 ---
 
@@ -12,10 +12,15 @@ A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting a
 | `Download_norcpm_atm.sh` | Wraps `wget_seaclim_hindcasts.sh` for atmospheric output (cam.h2, >20N, 3-hourly) |
 | `Download_norcpm_ocn.sh` | Wraps `wget_seaclim_hindcasts.sh` for ocean output (global and >20N monthly) |
 | `Preproc_norcpm_atm.sh` | Main atmospheric pipeline — extract, bias-correct, calendar-fix, insert leap days |
+| `Preproc_norcpm_atm.py` | Main atmospheric pipeline updated in Python — extract, bias-correct, calendar-fix, insert leap days |
 | `Preproc_norcpm_ocn.sh` | Main ocean pipeline — extract, bias-correct, calendar-fix ocean variables |
 | `Update_cal_biasfiles_fix.sh` | Fixes calendar metadata on atmospheric bias correction reference files |
 | `Transport_1year.sh` | Computes ocean section transports for a single year using `m2transport` |
 | `Transfer_to_edito.sh` | Transfers processed TOPAZ2 hindcast output from NIRD to the EDITO platform |
+| `run_nesting.sh` | Nesting files generation and experiment creation pipeline after ocean preprocessing |
+| `Make_ref_clim.py` | Computes climatology from a run output on selected variables |
+| `Make_bias_from_refrun.py` | Computes the biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
+| `Make_uvbias_from_refrun.ipynb` | Computes the velocity and barotropic biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
 
 ---
 
@@ -35,7 +40,7 @@ A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting a
 ### Usage
 
 ```bash
-./Preproc_norcpm_atm.sh <start_year> <member> [atmdir]
+python Preproc_norcpm_atm.py <start_year> <member> [atmdir]
 ```
 
 | Argument | Description | Example |
@@ -47,7 +52,7 @@ A set of Bash scripts for downloading, bias-correcting, and calendar-adjusting a
 ### Example
 
 ```bash
-./Preproc_norcpm_atm.sh 1993 3
+python Preproc_norcpm_atm.py 1993 3
 ```
 
 This processes ensemble member 3 of the hindcast initialised in November 1993, covering the period 1993–1999.
@@ -106,15 +111,15 @@ Bias correction reference files are located in the parent of the member director
 
 | Variable | Description | Bias corrected |
 |---|---|---|
-| `salnlvl` | Salinity on depth levels | Yes (WOA2018) |
-| `templvl` | Temperature on depth levels | Yes (WOA2018) |
-| `ubaro` | Barotropic eastward velocity | No |
-| `vbaro` | Barotropic northward velocity | No |
-| `sealv` | Sea surface height | No |
-| `uvellvl` | Eastward velocity on depth levels | No |
-| `vvellvl` | Northward velocity on depth levels | No |
+| `salnlvl` | Salinity on depth levels | Yes |
+| `templvl` | Temperature on depth levels | Yes |
+| `ubaro` | Barotropic eastward velocity | Yes |
+| `vbaro` | Barotropic northward velocity | Yes |
+| `sealv` | Sea surface height | Yes |
+| `uvellvl` | Eastward velocity on depth levels | Yes |
+| `vvellvl` | Northward velocity on depth levels | Yes |
 
-Bias correction files are expected in `./NorCPM_ocn_biascorr/`.
+Bias correction files are expected in `./NorCPM_bias/`.
 
 ---
 
@@ -142,6 +147,23 @@ Backup copies of files modified during leap year insertion are saved to `<memdir
 noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
   noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>.blom.hmphyglb.<VARIABLE>_<year>_<month>.nc
 ```
+
+---
+
+## Nesting files
+
+### Usage
+
+```bash
+./run_nesting.sh <start_year>
+```
+
+| Argument | Description | Example |
+|---|---|---|
+| `start_year` | Initialisation years (can be multiple) | `1993 1994` |
+
+By default the script will go over member number 1 but the loop can be adjusted.
+The file setup described in NERSC-HYCOM-CICE documentation is expected.
 
 ---
 

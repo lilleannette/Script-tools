@@ -175,7 +175,7 @@ print("Biases computed")
 
 
 ds_bias = ds_bias.where(ds_bias.salnlvl <= 20, 0)
-ds["sealv"] = ds["sealv"].isel(depth=0, drop=True)
+ds_bias["sealv"] = ds_bias["sealv"].isel(depth=0, drop=True)
 
 
 # In[ ]:

@@ -169,7 +169,8 @@ def align_bias_to_ds(ds, ds_bias):
 
 def bias_correct(ds, atmvar, biasdir):
     """Apply bias correction to dataset."""
-    if atmvar in ["FSDS", "TREFHT"]:
+    #if atmvar in ["FSDS", "TREFHT"]:
+    if atmvar in ["FSDS"]:
         return ds
     elif atmvar == "PRECT":
         time_coder = xr.coders.CFDatetimeCoder(use_cftime=True)
@@ -318,12 +319,13 @@ def main():
     atmdir = f"{atmdir}/noresm2-mm-seaclim_hindcast/"
     
     # Configuration paths
-    biasdir = "/cluster/projects/nn9481k/Climate_downscaling/NORCPM2_bias/"
+    #biasdir = "/cluster/projects/nn9481k/Climate_downscaling/NORCPM2_bias/"
+    biasdir = "/cluster/projects/nn9481k/arnaud/atm_bias/"
     griddir = "/cluster/projects/nn9481k/Climate_downscaling/ESM_grids/"
     
     # Atmospheric variables
-    atmvars = ["UAS", "VAS", "TREFHT", "QREFHT", "PSL", "PRECT", "FSDS", "FLDS"]
-    #atmvars = ["PRECT"]
+    #atmvars = ["UAS", "VAS", "TREFHT", "QREFHT", "PSL", "PRECT", "FSDS", "FLDS"]
+    atmvars = ["TREFHT"]
     
     # Format member string
     memstr = f"{member:03d}"

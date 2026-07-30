@@ -9,8 +9,8 @@ for year in "$@"; do
     echo "Processing year $year"
 
     #mkdir -p /nird/datalake/NS9481K/www/NorCPM_nesting/${year}/
-    # {1..4}
-    for member in 1; do
+    # in {1..4} or 1
+    for member in {2..4}; do
     (
         echo "Year=${year} Member=${member}"
 
@@ -45,8 +45,17 @@ for year in "$@"; do
         cp force/rivers/010/* force/rivers/${year: -2}${member}/
         mkdir -p relax/${year: -2}${member}/
         cp -r relax/010/* relax/${year: -2}${member}/
-        cp nest/930/rmu* nest/${year: -2}${member}/
-        cp nest/930/ports.input nest/${year: -2}${member}/
+        cp nest/010/rmu* nest/${year: -2}${member}/
+        cp nest/010/ports.input nest/${year: -2}${member}/
+
+        cd $USERWORK/TP2a0.10/ || exit 1
+        mkdir -p expt_${year: -2}.${member}/data/cice
+        cp expt_01.0/hycom_opt expt_${year: -2}.${member}/
+        cd expt_${year: -2}.${member}/data/ || exit 1
+        cp /nird/datalake/NS9481K/shuang/TP2_output/expt_02.8/restart/restart.${year}_30[56]* .
+        cd cice || exit 1
+        cp /nird/datalake/NS9481K/shuang/TP2_output/expt_02.8/cice/iced.${year}-11-01-00000.nc .
+        
 
         echo "Finished year=${year} member=${member}"
 
@@ -58,3 +67,4 @@ for year in "$@"; do
 done
 
 echo "All years completed."
+

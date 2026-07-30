@@ -95,12 +95,14 @@ for ((year=syear; year<=eyear; year+=1)); do
     done
 done
 
+cp -r NorCPM_bias/ NorCPM_bias_${syear}_${member}/
+
 # bias correction for temperature and salinity
 for ocnvar in "${OCN_VARS_WBS[@]}"; do
     # set the times in the bias-file	    
     cdo setreftime,1950-01-01,0,1day -settaxis,${syear}-11-15,00:00:00,1mon \
-	NorCPM_bias/bias_NorCPM_REFRUN_64M_${ocnvar}.nc \
-	NorCPM_bias/bias_NorCPM_REFRUN_64M_${ocnvar}_cal.nc
+	NorCPM_bias_${syear}_${member}/bias_NorCPM_REFRUN_64M_${ocnvar}.nc \
+	NorCPM_bias_${syear}_${member}/bias_NorCPM_REFRUN_64M_${ocnvar}_cal.nc
     for ((year=syear; year<=eyear; year+=1)); do
         if [ $year -eq $syear ]; then
             smon=11; emon=12
@@ -121,12 +123,12 @@ for ocnvar in "${OCN_VARS_WBS[@]}"; do
 
 	    #extract the right month from the bias-files
 	    cdo -O seldate,${year}-${monstr}-15 \
-		NorCPM_bias/bias_NorCPM_REFRUN_64M_${ocnvar}_cal.nc \
-	        NorCPM_bias/bias_NorCPM_REFRUN_64M_${ocnvar}_mon.nc
+		NorCPM_bias_${syear}_${member}/bias_NorCPM_REFRUN_64M_${ocnvar}_cal.nc \
+	    NorCPM_bias_${syear}_${member}/bias_NorCPM_REFRUN_64M_${ocnvar}_mon.nc
 	    
 	    # subtract the bias
-    	    cdo monsub ${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_grid.nc \
-		NorCPM_bias/bias_NorCPM_REFRUN_64M_${ocnvar}_mon.nc \
+    	cdo monsub ${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_grid.nc \
+		NorCPM_bias_${syear}_${member}/bias_NorCPM_REFRUN_64M_${ocnvar}_mon.nc \
 		${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_bc.nc
 	    # no longer needed after monsub
 	    cleanup ${memdir}/${ocnvar}_S${syear}_${year}_${monstr}_grid.nc    

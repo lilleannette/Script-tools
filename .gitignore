@@ -9,3 +9,5 @@ Thumbs.db
 
 # data
 noresm2-mm-seaclim_hindcast
+NorCPM_bias*
+.ipynb_checkpoints

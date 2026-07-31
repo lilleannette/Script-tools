@@ -4,6 +4,8 @@
 # ./run_nesting.sh 2005 2006 2007
 # The script creates nesting files and experiment setups for members 1 to 4 of the years given.
 
+module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/etc/profile.d/conda.sh && conda activate hycom-cice
+
 for year in "$@"; do
 
     echo "Processing year $year"
@@ -17,7 +19,7 @@ for year in "$@"; do
         cd $USERWORK/CPMa1.00 || exit 1
         rm -rf Nesting_files/${year}_${member}/
         mkdir Nesting_files/${year}_${member}/
-        cp $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/*merged* Nesting_files/${year}_${member}/
+        cp $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/*merged* Nesting_files/${year}_${member}/
         
         cd $WORK/TP2a0.10/ || exit 1
         rm -rf nest/${year: -2}${member}/

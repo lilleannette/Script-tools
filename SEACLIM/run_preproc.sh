@@ -23,8 +23,15 @@ module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/bin/activate && cond
 
 for year in "$@"; do
     for member in {1..4}; do
-        ./Preproc_norcpm_ocn.sh "$year" "$member" &
-        python Preproc_norcpm_atm.py "$year" "$member" /cluster/work/users/arnelt &
+    (
+        ./Preproc_norcpm_ocn.sh "$year" "$member"
+        
+        mkdir -p $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
+        mv $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/* $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
+        rm -rf $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
+        
+        python Preproc_norcpm_atm.py "$year" "$member" /cluster/work/users/arnelt
+    ) &
     done
     wait
 done

@@ -2,6 +2,8 @@
 
 # Usage:
 # ./run_atmforcing.sh 2005 2006 2007
+# Generates atmospheric forcing ab file for hycom from netcdf files for the specified years across all members (1-4).
+# The script assumes that the Preproc_norcpm_atm.py script has already been executed for the specified years.
 
 for year in "$@"; do
 

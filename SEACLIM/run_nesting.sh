@@ -2,7 +2,7 @@
 
 # Usage:
 # ./run_nesting.sh 2005 2006 2007
-# The script creates and saves the nesting files to Nird for members 1 to 4 of the years given
+# The script creates nesting files and experiment setups for members 1 to 4 of the years given.
 
 for year in "$@"; do
 
@@ -10,7 +10,7 @@ for year in "$@"; do
 
     #mkdir -p /nird/datalake/NS9481K/www/NorCPM_nesting/${year}/
     # in {1..4} or 1
-    for member in {2..4}; do
+    for member in {1..4}; do
     (
         echo "Year=${year} Member=${member}"
 

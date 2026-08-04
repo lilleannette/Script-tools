@@ -17,7 +17,9 @@ A set of scripts for downloading, bias-correcting, and calendar-adjusting atmosp
 | `Update_cal_biasfiles_fix.sh` | Fixes calendar metadata on atmospheric bias correction reference files |
 | `Transport_1year.sh` | Computes ocean section transports for a single year using `m2transport` |
 | `Transfer_to_edito.sh` | Transfers processed TOPAZ2 hindcast output from NIRD to the EDITO platform |
+| `run_preproc.sh` | Downloads and runs preprocessing scripts for both ocean and atmosphere |
 | `run_nesting.sh` | Nesting files generation and experiment creation pipeline after ocean preprocessing |
+| `run_atmforcing.sh` | Generates hycom input files for atmosphere forcing from preprocessed files |
 | `Make_ref_clim.py` | Computes climatology from a run output on selected variables |
 | `Make_bias_from_refrun.py` | Computes the biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
 | `Make_uvbias_from_refrun.ipynb` | Computes the velocity and barotropic biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
@@ -150,20 +152,23 @@ noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
 
 ---
 
-## Nesting files
+## Complete input files generation
 
 ### Usage
 
 ```bash
+./run_preproc.sh <start_year>
 ./run_nesting.sh <start_year>
+./run_atmforcing.sh <start_year>
 ```
 
 | Argument | Description | Example |
 |---|---|---|
 | `start_year` | Initialisation years (can be multiple) | `1993 1994` |
 
-By default the script will go over member number 1 but the loop can be adjusted.
-The file setup described in NERSC-HYCOM-CICE documentation is expected.
+`./run_preproc.sh` should always be ran first as it downloads and preprocesses the files needed by the following scripts.
+By default the scripts will go over members 1 to 4 but the loops can be adjusted.
+The file setup and model installation described in the NERSC-HYCOM-CICE documentation is expected.
 
 ---
 

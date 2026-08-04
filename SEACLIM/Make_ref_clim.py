@@ -1,10 +1,11 @@
+# Usage: python Make_ref_clim.py
+# Creates reference climatology files from the hycom reference run
+
 import xhycom
 import xarray as xr
 from pathlib import Path
 from glob import glob
 from datetime import datetime, timedelta
-
-print("Init done")
 
 #DATA_PATH = "/nird/datalake/NS9481K/shuang/TP2_output/expt_02.8/"
 DATA_PATH = "/cluster/work/users/arnelt/hyc2proj_test/"
@@ -20,26 +21,7 @@ outdir.mkdir(exist_ok=True)
 
 years = range(1993, 2025)
 
-
-def month_doy_range(year, month):
-    """Return zero-padded day-of-year strings for a given month."""
-    start = datetime(year, month, 1)
-    
-    if month == 12:
-        end = datetime(year + 1, 1, 1)
-    else:
-        end = datetime(year, month + 1, 1)
-
-    days = []
-    d = start
-    while d < end:
-        doy = d.timetuple().tm_yday
-        days.append(f"{doy:03d}")
-        d += timedelta(days=1)
-
-    return days
-
-
+# To load less data into memory, we process one month at a time, openning each year separately
 for month in range(1, 13):
 
     print(f"\nProcessing month {month:02d}")
@@ -87,6 +69,7 @@ for month in range(1, 13):
 
     print("Computing climatology")
 
+    # Compute the climatology for the month and correcting time axis
     clim_month = monthly_sum / monthly_count
 
     clim_month = clim_month.expand_dims(
@@ -100,6 +83,7 @@ for month in range(1, 13):
 
     outfile = outdir / f"clim_1993_2024_{month:02d}_uv.nc"
 
+    # Saving the results
     clim_month.to_netcdf(
         outfile,
         unlimited_dims=["time"]

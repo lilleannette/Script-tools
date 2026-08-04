@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Usage: python Preproc_norcpm_atm.py <start_year> <member> [atmdir]
+# Downloads and preprocesses NorCPM atmospheric data for the specified start year and member.
+
 import sys
 import os
 import shutil

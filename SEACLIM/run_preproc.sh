@@ -2,7 +2,8 @@
 
 # Usage:
 # ./run_preproc.sh 2005 2006 2007
-# It does the preprocessing for members 1 to 4 of the years given
+# Downloads and preprocesses NorCPM data for members 1 to 4 of the years given
+# Runs both ocean and atmospheric preprocessing scripts for each year and member combination.
 
 #SBATCH --job-name OcnAtmProc   ## Name of the job
 #SBATCH --output slurm-%j.out   ## Name of the output-script (%j will be replaced with job number)
@@ -25,9 +26,7 @@ for year in "$@"; do
         ./Preproc_norcpm_ocn.sh "$year" "$member" &
         python Preproc_norcpm_atm.py "$year" "$member" /cluster/work/users/arnelt &
     done
-
     wait
-    
 done
 
 echo "All jobs completed."

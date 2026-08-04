@@ -154,6 +154,17 @@ noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
 
 ## Complete input files generation
 
+The preparation of hycom input files from NorCPM data has been wrapped in 3 scripts to automate the workflow. 
+
+
+To use these, the file setup and model installation described in the NERSC-HYCOM-CICE documentation is expected : https://nersc-hycom-cice.readthedocs.io/en/latest/.
+
+
+The scripts cover downloading, preprocessing and converting the data to hycom input files.
+At the same time, experiments are created with the naming convention : year.member (example : 93.1 for year 1993 and member 1).
+And other inputs required by hycom are copied over from experiment 01.0 taken as a reference.
+To then run the model in these experiments, `EXPT.src` and `srjob.sh` should be updated and the model compiled.
+
 ### Usage
 
 ```bash
@@ -168,7 +179,6 @@ noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
 
 `./run_preproc.sh` should always be ran first as it downloads and preprocesses the files needed by the following scripts.
 By default the scripts will go over members 1 to 4 but the loops can be adjusted.
-The file setup and model installation described in the NERSC-HYCOM-CICE documentation is expected.
 
 ---
 

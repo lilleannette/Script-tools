@@ -14,6 +14,7 @@ A set of scripts for downloading, bias-correcting, and calendar-adjusting atmosp
 | `Preproc_norcpm_atm.sh` | Main atmospheric pipeline — extract, bias-correct, calendar-fix, insert leap days |
 | `Preproc_norcpm_atm.py` | Main atmospheric pipeline updated in Python — extract, bias-correct, calendar-fix, insert leap days |
 | `Preproc_norcpm_ocn.sh` | Main ocean pipeline — extract, bias-correct, calendar-fix ocean variables |
+| `Preproc_norcpm_ocnbio.sh` | Main ocean pipeline for bio variables — extract, bias-correct, calendar-fix ocean variables |
 | `Update_cal_biasfiles_fix.sh` | Fixes calendar metadata on atmospheric bias correction reference files |
 | `Transport_1year.sh` | Computes ocean section transports for a single year using `m2transport` |
 | `Transfer_to_edito.sh` | Transfers processed TOPAZ2 hindcast output from NIRD to the EDITO platform |
@@ -97,10 +98,13 @@ Bias correction reference files are located in the parent of the member director
 
 ## Ocean Pipeline
 
+Two scripts take care of the ocean preprocessing, respectively for physical and biogeochemical variables.
+
 ### Usage
 
 ```bash
 ./Preproc_norcpm_ocn.sh <start_year> <member> [download]
+./Preproc_norcpm_ocnbio.sh <start_year> <member> [download]
 ```
 
 | Argument | Description | Example |
@@ -111,6 +115,8 @@ Bias correction reference files are located in the parent of the member director
 
 ### Ocean variables
 
+Physical variables
+
 | Variable | Description | Bias corrected |
 |---|---|---|
 | `salnlvl` | Salinity on depth levels | Yes |
@@ -120,6 +126,18 @@ Bias correction reference files are located in the parent of the member director
 | `sealv` | Sea surface height | Yes |
 | `uvellvl` | Eastward velocity on depth levels | Yes |
 | `vvellvl` | Northward velocity on depth levels | Yes |
+
+Biogeochemical variables
+
+| Variable | Description | Bias corrected |
+|---|---|---|
+| `no3lvl` | Nitrate on depth levels | Yes |
+| `po4lvl` | Phosphorus on depth levels | Yes |
+| `silvl` | Silicate on depth levels | Yes |
+| `o2lvl` | Oxygen on depth levels | Yes |
+| `dissiclvl` | Dissolved inorganic carbon on depth levels | Yes |
+| `talklvl` | Alkalinity on depth levels | Yes |
+
 
 Bias correction files are expected in `./NorCPM_bias/`.
 

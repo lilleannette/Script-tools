@@ -212,7 +212,7 @@ for ((year=syear; year<=eyear; year+=1)); do
             -chname,silvl,si "${si_file}_extr.nc" \
             -chname,o2lvl,o2 "${o2_file}_extr.nc" \
             -chname,dissiclvl,dissic "${dissic_file}_extr.nc" \
-            -chname,talklvl,TA "${talk_file}_extr.nc" \
+            -chname,talklvl,talk "${talk_file}_extr.nc" \
             "$merged_out"
 
 	# 4. Fix time-axis rules cleanly

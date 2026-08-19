@@ -2,9 +2,9 @@
 
 # Usage:
 # ./run_nesting.sh 2005 2006 2007
-# The script creates nesting files and experiment setups for members 1 to 4 of the years given.
+# The script creates and saves the nesting files to Nird for members 1 to 4 of the years given
 
-module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/etc/profile.d/conda.sh && conda activate hycom-cice
+module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/bin/activate && conda activate hycom-cice
 
 for year in "$@"; do
 
@@ -27,18 +27,19 @@ for year in "$@"; do
         ./bin/expt_new.sh 01.0 ${year: -2}.${member}
         cd $USERWORK/CPMa1.00/expt_01.0 || exit 1
 
-        ../bin/Nesting_noresm/cpm_to_hycom.sh $WORK/TP2a0.10/expt_${year: -2}.${member}/ ../Nesting_files/${year}_${member}/*merged_*.nc
+        ../bin/Nesting_noresm/cpm_to_hycom.sh -b $WORK/TP2a0.10/expt_${year: -2}.${member}/ ../Nesting_files/${year}_${member}/*hmphyglb*merged*.nc
 
         cd $WORK/TP2a0.10/expt_${year: -2}.${member}/ || exit 1
 
         cp /nird/datalake/NS9481K/shuang/TP2_output/expt_02.8/restart/restart.${year}_30[56]* .
         python ../bin/calc_montg1.py ../nest/${year: -2}${member}/archv.[12]*.a ./restart.${year}_30[56]_00_0000.a ./
-
+        
+        cp ../nest/${year: -2}${member}/archv_fabm* .
         ./Renames.sh ${year} $((year + 7))
 
         cd $WORK/TP2a0.10/ || exit 1
-        rm -rf nest/${year: -2}${member}/archv.*
-        mv expt_${year: -2}.${member}/archv.* nest/${year: -2}${member}/
+        rm -rf nest/${year: -2}${member}/archv*
+        mv expt_${year: -2}.${member}/archv* nest/${year: -2}${member}/
 
         #mkdir -p /nird/datalake/NS9481K/www/NorCPM_nesting/${year}/mem00${member}/
         #cp archv.[12]* /nird/datalake/NS9481K/www/NorCPM_nesting/${year}/mem00${member}/
@@ -53,6 +54,9 @@ for year in "$@"; do
         cd $USERWORK/TP2a0.10/ || exit 1
         mkdir -p expt_${year: -2}.${member}/data/cice
         cp expt_01.0/hycom_opt expt_${year: -2}.${member}/
+        cp expt_01.0/fabm.yaml expt_${year: -2}.${member}/
+        cp expt_01.0/hycom_fabm.nml expt_${year: -2}.${member}/
+        cp expt_01.0/ice_in expt_${year: -2}.${member}/
         cd expt_${year: -2}.${member}/data/ || exit 1
         cp /nird/datalake/NS9481K/shuang/TP2_output/expt_02.8/restart/restart.${year}_30[56]* .
         cd cice || exit 1

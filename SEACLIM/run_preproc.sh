@@ -2,11 +2,10 @@
 
 # Usage:
 # ./run_preproc.sh 2005 2006 2007
-# Downloads and preprocesses NorCPM data for members 1 to 4 of the years given
-# Runs both ocean and atmospheric preprocessing scripts for each year and member combination.
+# It does the preprocessing for members 1 to 4 of the years given
 
 #SBATCH --job-name OcnAtmProc   ## Name of the job
-#SBATCH --output slurm-%j.out   ## Name of the output-script (%j will be replaced with job number)
+#SBATCH --output log/slurm-%j.out   ## Name of the output-script (%j will be replaced with job number)
 #SBATCH --account nn9481k   ## The billed account
 #SBATCH --partition=preproc
 #SBATCH --time=15:00:00   ## Walltime of the job
@@ -19,21 +18,21 @@ set -o nounset   ## Treat any unset variables as an error
 
 cd $SLURM_SUBMIT_DIR
 
-module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/bin/activate && conda activate hycom-cice
-
 for year in "$@"; do
     for member in {1..4}; do
     (
         ./Preproc_norcpm_ocn.sh "$year" "$member"
+        ./Preproc_norcpm_ocnbio.sh "$year" "$member"
         
         mkdir -p $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
         mv $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/* $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
         rm -rf $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
-        
-        python Preproc_norcpm_atm.py "$year" "$member" /cluster/work/users/arnelt
+
     ) &
     done
+
     wait
+    
 done
 
 echo "All jobs completed."

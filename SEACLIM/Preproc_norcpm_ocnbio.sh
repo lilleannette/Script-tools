@@ -38,8 +38,8 @@ member=$2
 
 if $download; then
     variable_group=blom.hmbgcglb
-    echo ./wget_seaclim_hindcasts.sh . $year $member $variable_group
-    ./wget_seaclim_hindcasts.sh . $year $member $variable_group
+    echo ./wget_seaclim_hindcasts.sh . $syear $member $variable_group
+    ./wget_seaclim_hindcasts.sh . $syear $member $variable_group
 fi
 
 # Define which varibales to process
@@ -201,7 +201,7 @@ for ((year=syear; year<=eyear; year+=1)); do
         cdo setmisstonn -setgrid,cdogrid_norcpm_ocn_glb "$talk_file" "${talk_file}_extr.nc"
 
         # Define the target unified file name
-        merged_out="${memdir}/${exp}_${syear}1101_mem${memstr}.blom.hmphyglb.biomerged_${year}-${monstr}.nc"
+        merged_out="${memdir}/${exp}_${syear}1101_mem${memstr}.blom.hmbgcglb.merged_${year}-${monstr}.nc"
 
         echo "Merging standard physical arrays..."
 

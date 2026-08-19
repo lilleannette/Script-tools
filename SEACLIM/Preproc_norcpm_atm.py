@@ -327,15 +327,16 @@ def main():
     griddir = "/cluster/projects/nn9481k/Climate_downscaling/ESM_grids/"
     
     # Atmospheric variables
-    #atmvars = ["UAS", "VAS", "TREFHT", "QREFHT", "PSL", "PRECT", "FSDS", "FLDS"]
-    atmvars = ["TREFHT"]
+    atmvars = ["UAS", "VAS", "TREFHT", "QREFHT", "PSL", "PRECT", "FSDS", "FLDS"]
+    #atmvars = ["PRECT"]
     
     # Format member string
     memstr = f"{member:03d}"
     memdir = f"{atmdir}noresm2-mm-seaclim_hindcast_{syear}1101_mem{memstr}/"
     
     # Ensure directory exists
-    if not os.path.isdir(memdir):
+    #if not os.path.isdir(memdir):
+    if True:
         print(f"Directory not found: {memdir}. Attempting to run downloader script...")
         script_dir = os.path.dirname(__file__) or os.getcwd()
         download_script = os.path.join(script_dir, 'Download_norcpm_atm.sh')

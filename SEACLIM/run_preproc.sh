@@ -16,7 +16,7 @@
 set -o errexit   ## Exit the script on any error
 set -o nounset   ## Treat any unset variables as an error
 
-cd $SLURM_SUBMIT_DIR
+cd $USERWORK/Script-tools/SEACLIM
 
 for year in "$@"; do
     for member in {1..4}; do
@@ -25,8 +25,8 @@ for year in "$@"; do
         ./Preproc_norcpm_ocnbio.sh "$year" "$member"
         
         mkdir -p $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
-        mv $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/* $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
-        rm -rf $WORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
+        mv $USERWORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/* $USERWORK/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
+        rm -rf $USERWORK/Script-tools/SEACLIM/noresm2-mm-seaclim_hindcast/noresm2-mm-seaclim_hindcast_${year}1101_mem00${member}/
 
     ) &
     done

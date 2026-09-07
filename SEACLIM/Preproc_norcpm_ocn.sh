@@ -246,3 +246,5 @@ for ((year=syear; year<=eyear; year+=1)); do
     done
 done
 
+rm -rf NorCPM_bias_${syear}_${member}/
+

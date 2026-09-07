@@ -4,7 +4,7 @@
 # ./run_nesting.sh 2005 2006 2007
 # The script creates and saves the nesting files to Nird for members 1 to 4 of the years given
 
-module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/bin/activate && conda activate hycom-cice
+module load Miniforge3/24.1.2-0 && source $EBROOTMINIFORGE3/etc/profile.d/conda.sh && conda activate hycom-cice
 
 for year in "$@"; do
 

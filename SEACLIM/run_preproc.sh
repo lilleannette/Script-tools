@@ -8,7 +8,7 @@
 #SBATCH --output log/slurm-%j.out   ## Name of the output-script (%j will be replaced with job number)
 #SBATCH --account nn9481k   ## The billed account
 #SBATCH --partition=preproc
-#SBATCH --time=15:00:00   ## Walltime of the job
+#SBATCH --time=20:00:00   ## Walltime of the job
 #SBATCH --mem=32G   ## Memory allocated to each task
 #SBATCH --ntasks=1   ## Number of tasks that will be allocated
 #SBATCH --cpus-per-task=64   ## Number of CPUs allocated for each task

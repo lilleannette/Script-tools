@@ -19,15 +19,15 @@ for year in "$@"; do
 
         /cluster/projects/nn9481k/conda/arnelt/hycom-cice/bin/python Preproc_norcpm_atm.py "$year" "$member" $USERWORK
 
-        cd $WORK/TP2a0.10/expt_01.0/ || exit 1
+        #cd $WORK/TP2a0.10/expt_01.0/ || exit 1
 
-        source ../REGION.src
-        source ./EXPT.src
-        source ${BINDIR}/common_functions.sh
-        source $NHCROOT/environment/betzy_env.sh
+        #source ../REGION.src
+        #source ./EXPT.src
+        #source ${BINDIR}/common_functions.sh
+        #source $NHCROOT/environment/betzy_env.sh
         
         mkdir -p $USERWORK/TP2a0.10/force/synoptic/${year: -2}${member}/SCRATCH
-        cd $USERWORK/TP2a0.10/force/synoptic/${year: -2}${member}/SCRATCH
+        cd $USERWORK/TP2a0.10/force/synoptic/${year: -2}${member}/SCRATCH || exit 1
         cp ../../010/SCRATCH/blkdat.input .
         cp ../../010/SCRATCH/regional.* .
 

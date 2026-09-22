@@ -32,18 +32,16 @@ for year in "$@"; do
         cd $WORK/TP2a0.10/expt_${year: -2}.${member}/ || exit 1
 
         cp /nird/datalake/NS9481K/shuang/TP2_output/expt_02.8/restart/restart.${year}_30[56]* .
-        python ../bin/calc_montg1.py ../nest/${year: -2}${member}/archv.[12]*.a ./restart.${year}_30[56]_00_0000.a ./
-        
-        cp ../nest/${year: -2}${member}/archv_fabm* .
+        mkdir -p ../nest/${year: -2}${member}/SCRATCH/
+        python ../bin/calc_montg1.py ../nest/${year: -2}${member}/archv.[12]*.a ./restart.${year}_30[56]_00_0000.a ../nest/${year: -2}${member}/SCRATCH/
+        mv ../nest/${year: -2}${member}/SCRATCH/* ../nest/${year: -2}${member}/
+        rm -rf ../nest/${year: -2}${member}/SCRATCH/
+
+        cd $WORK/TP2a0.10/nest/${year: -2}${member}/ || exit 1
+        cp $WORK/TP2a0.10/expt_${year: -2}.${member}/Renames.sh .
         ./Renames.sh ${year} $((year + 7))
 
         cd $WORK/TP2a0.10/ || exit 1
-        rm -rf nest/${year: -2}${member}/archv*
-        mv expt_${year: -2}.${member}/archv* nest/${year: -2}${member}/
-
-        #mkdir -p /nird/datalake/NS9481K/www/NorCPM_nesting/${year}/mem00${member}/
-        #cp archv.[12]* /nird/datalake/NS9481K/www/NorCPM_nesting/${year}/mem00${member}/
-
         mkdir -p force/rivers/${year: -2}${member}/
         cp force/rivers/010/* force/rivers/${year: -2}${member}/
         mkdir -p relax/${year: -2}${member}/

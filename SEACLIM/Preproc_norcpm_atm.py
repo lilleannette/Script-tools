@@ -323,7 +323,7 @@ def main():
     
     # Configuration paths
     #biasdir = "/cluster/projects/nn9481k/Climate_downscaling/NORCPM2_bias/"
-    biasdir = "/cluster/projects/nn9481k/arnaud/atm_bias/"
+    biasdir = "/cluster/work/users/arnelt/atm_bias/"
     griddir = "/cluster/projects/nn9481k/Climate_downscaling/ESM_grids/"
     
     # Atmospheric variables

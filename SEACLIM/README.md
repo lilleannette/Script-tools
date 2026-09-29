@@ -24,6 +24,7 @@ A set of scripts for downloading, bias-correcting, and calendar-adjusting atmosp
 | `Make_ref_clim.py` | Computes climatology from a run output on selected variables |
 | `Make_bias_from_refrun.py` | Computes the biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
 | `Make_uvbias_from_refrun.ipynb` | Computes the velocity and barotropic biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
+| `correct_TREFHT_bias.ipynb` | Corrects the TREFHT bias by taking 50% of the full bias |
 
 ---
 
@@ -35,6 +36,9 @@ A set of scripts for downloading, bias-correcting, and calendar-adjusting atmosp
 | [NCO](https://nco.sourceforge.net/) | 5.1.3-foss-2022a | Variable subsetting and attribute editing |
 
 > **HPC users:** Uncomment the `module load` lines at the top of the scripts to load these tools via the module system.
+
+The hycom-cice Python environment, the exact setup is described in the NERSC-HYCOM-CICE documentation 
+(https://nersc-hycom-cice.readthedocs.io/en/latest/installation.html#python-environment)
 
 ---
 
@@ -87,12 +91,14 @@ This processes ensemble member 3 of the hindcast initialised in November 1993, c
 
 | Variable(s) | Method |
 |---|---|
-| `FSDS`, `TREFHT` | No bias correction applied |
+| `FSDS` | No bias correction applied |
 | `PRECT` | Multiplicative correction using a pre-computed ratio file |
 | `QREFHT` | Additive monthly correction with a floor cap at `6.0e-5` |
+| `TREFHT` | Additive monthly correction at 50% scale |
 | `UAS`, `VAS`, `PSL`, `FLDS` | Standard additive monthly bias correction |
 
-Bias correction reference files are located in the parent of the member directory (`../`).
+Bias correction files are located on Nird (`/nird/datalake/NS9481K/arnaud/atm_bias/`).
+Update the bias path in `Preproc_norcpm_atm.py` according to their location.
 
 ---
 
@@ -140,6 +146,7 @@ Biogeochemical variables
 
 
 Bias correction files are expected in `./NorCPM_bias/`.
+They can be downloaded from Nird (`/nird/datalake/NS9481K/arnaud/NorCPM_bias/`).
 
 ---
 
@@ -195,13 +202,14 @@ To then run the model in these experiments, `EXPT.src` and `srjob.sh` should be 
 |---|---|---|
 | `start_year` | Initialisation years (can be multiple) | `1993 1994` |
 
-`./run_preproc.sh` should always be ran first as it downloads and preprocesses the files needed by the following scripts.
+`./run_preproc.sh` should always be ran before `./run_preproc.sh` as it downloads and preprocesses the files needed by the following script.
+`./run_atmforcing.sh` can be run independently.
 By default the scripts will go over members 1 to 4 but the loops can be adjusted.
 
 ---
 
 ## Notes
 
-- The hindcast window covers `syear` to `syear + 6` (7 years).
+- The hindcast window covers `syear-11-01` to `syear+6-01-01` (62 months).
 - The atmospheric pipeline handles **leap years** by duplicating February 28th data and relabelling it as February 29th.
 - Reference time for all output is anchored to `1950-01-01` with a 3-hourly timestep (atmospheric) or monthly timestep (ocean).

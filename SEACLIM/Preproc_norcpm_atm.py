@@ -2,6 +2,7 @@
 
 # Usage: python Preproc_norcpm_atm.py <start_year> <member> [atmdir]
 # Downloads and preprocesses NorCPM atmospheric data for the specified start year and member.
+# Update biasdir depending on its location for you.
 
 import sys
 import os
@@ -20,6 +21,8 @@ except Exception:
 from datetime import datetime, timedelta
 from pathlib import Path
 
+#biasdir = "/nird/datalake/NS9481K/arnaud/atm_bias/"
+biasdir = "/cluster/work/users/arnelt/atm_bias/"
 
 def cleanup(*files):
     """Delete files and warn if deletion fails."""
@@ -322,8 +325,6 @@ def main():
     atmdir = f"{atmdir}/noresm2-mm-seaclim_hindcast/"
     
     # Configuration paths
-    #biasdir = "/cluster/projects/nn9481k/Climate_downscaling/NORCPM2_bias/"
-    biasdir = "/cluster/work/users/arnelt/atm_bias/"
     griddir = "/cluster/projects/nn9481k/Climate_downscaling/ESM_grids/"
     
     # Atmospheric variables

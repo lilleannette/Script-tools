@@ -11,20 +11,12 @@ A set of scripts for downloading, bias-correcting, and calendar-adjusting atmosp
 | `wget_seaclim_hindcasts.sh` | Downloads raw NorCPM hindcast files from the Sigma2 server |
 | `Download_norcpm_atm.sh` | Wraps `wget_seaclim_hindcasts.sh` for atmospheric output (cam.h2, >20N, 3-hourly) |
 | `Download_norcpm_ocn.sh` | Wraps `wget_seaclim_hindcasts.sh` for ocean output (global and >20N monthly) |
-| `Preproc_norcpm_atm.sh` | Main atmospheric pipeline — extract, bias-correct, calendar-fix, insert leap days |
-| `Preproc_norcpm_atm.py` | Main atmospheric pipeline updated in Python — extract, bias-correct, calendar-fix, insert leap days |
+| `Preproc_norcpm_atm.py` | Main atmospheric pipeline — extract, bias-correct, calendar-fix, insert leap days |
 | `Preproc_norcpm_ocn.sh` | Main ocean pipeline — extract, bias-correct, calendar-fix ocean variables |
 | `Preproc_norcpm_ocnbio.sh` | Main ocean pipeline for bio variables — extract, bias-correct, calendar-fix ocean variables |
-| `Update_cal_biasfiles_fix.sh` | Fixes calendar metadata on atmospheric bias correction reference files |
-| `Transport_1year.sh` | Computes ocean section transports for a single year using `m2transport` |
-| `Transfer_to_edito.sh` | Transfers processed TOPAZ2 hindcast output from NIRD to the EDITO platform |
-| `run_preproc.sh` | Downloads and runs preprocessing scripts for both ocean and atmosphere |
-| `run_nesting.sh` | Nesting files generation and experiment creation pipeline after ocean preprocessing |
-| `run_atmforcing.sh` | Generates hycom input files for atmosphere forcing from preprocessed files |
-| `Make_ref_clim.py` | Computes climatology from a run output on selected variables |
-| `Make_bias_from_refrun.py` | Computes the biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
-| `Make_uvbias_from_refrun.ipynb` | Computes the velocity and barotropic biases between reference run and Norcpm, used in `Preproc_norcpm_ocn.sh` |
-| `correct_TREFHT_bias.ipynb` | Corrects the TREFHT bias by taking 50% of the full bias |
+| `run_preproc_ocn.sh` | Downloads and runs preprocessing scripts for ocean boundary conditions |
+| `run_nesting_expt_setup.sh` | Nesting files generation and experiment creation pipeline after ocean preprocessing |
+| `run_atmforcing.sh` | Downloads and runs preprocessing scripts for atmosphere forcing then converts them to hycom input files |
 
 ---
 
@@ -42,7 +34,40 @@ The hycom-cice Python environment, the exact setup is described in the NERSC-HYC
 
 ---
 
+## Complete input files generation and experiment setup
+
+The preparation of hycom input files from NorCPM data has been wrapped in 3 scripts to automate the workflow. 
+
+
+To use these, the file setup and model installation described in the NERSC-HYCOM-CICE documentation is expected : https://nersc-hycom-cice.readthedocs.io/en/latest/.
+
+
+The scripts cover downloading, preprocessing and converting the data to hycom input files.
+At the same time, experiments are created by `./run_nesting_expt_setup.sh` with the naming convention : year.member (example : 93.1 for year 1993 and member 1).
+And other inputs required by hycom are copied over from experiment 01.0 taken as a reference.
+To then run the model in these experiments, `srjob.sh` should be updated and the model compiled.
+
+### Usage
+
+```bash
+./run_preproc_ocn.sh <start_year>
+./run_nesting_expt_setup.sh <start_year>
+./run_atmforcing.sh <start_year>
+```
+
+| Argument | Description | Example |
+|---|---|---|
+| `start_year` | Initialisation years (can be multiple) | `1993 1994` |
+
+`run_preproc_ocn.sh` should always be ran before `run_nesting_expt_setup.sh` as it downloads and preprocesses the files needed by the following script.
+`run_atmforcing.sh` can be run independently.
+By default the scripts will go over members 1 to 4 but the loops can be adjusted.
+
+---
+
 ## Atmospheric Pipeline
+
+This section details the process in `Preproc_norcpm_atm.py` called by `run_atmforcing.sh`.
 
 ### Usage
 
@@ -104,7 +129,9 @@ Update the bias path in `Preproc_norcpm_atm.py` according to their location.
 
 ## Ocean Pipeline
 
-Two scripts take care of the ocean preprocessing, respectively for physical and biogeochemical variables.
+This section details the processes in `Preproc_norcpm_ocn[bio].sh` called by `run_preproc_ocn.sh`.
+
+The two scripts take care of the ocean preprocessing, respectively for physical and biogeochemical variables.
 
 ### Usage
 
@@ -166,45 +193,12 @@ Final output files follow the naming convention:
 noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>.cam.h2.<VARIABLE>_<year>.nc
 ```
 
-Backup copies of files modified during leap year insertion are saved to `<memdir>/bckup/`.
-
 ### Ocean
 
 ```
 noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>/
   noresm2-mm-seaclim_hindcast_<syear>1101_mem<memstr>.blom.hmphyglb.<VARIABLE>_<year>_<month>.nc
 ```
-
----
-
-## Complete input files generation
-
-The preparation of hycom input files from NorCPM data has been wrapped in 3 scripts to automate the workflow. 
-
-
-To use these, the file setup and model installation described in the NERSC-HYCOM-CICE documentation is expected : https://nersc-hycom-cice.readthedocs.io/en/latest/.
-
-
-The scripts cover downloading, preprocessing and converting the data to hycom input files.
-At the same time, experiments are created with the naming convention : year.member (example : 93.1 for year 1993 and member 1).
-And other inputs required by hycom are copied over from experiment 01.0 taken as a reference.
-To then run the model in these experiments, `EXPT.src` and `srjob.sh` should be updated and the model compiled.
-
-### Usage
-
-```bash
-./run_preproc.sh <start_year>
-./run_nesting.sh <start_year>
-./run_atmforcing.sh <start_year>
-```
-
-| Argument | Description | Example |
-|---|---|---|
-| `start_year` | Initialisation years (can be multiple) | `1993 1994` |
-
-`./run_preproc.sh` should always be ran before `./run_preproc.sh` as it downloads and preprocesses the files needed by the following script.
-`./run_atmforcing.sh` can be run independently.
-By default the scripts will go over members 1 to 4 but the loops can be adjusted.
 
 ---
 

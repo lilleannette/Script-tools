@@ -7,14 +7,15 @@
 #              reformat NetCDF files for use in seasonal climate hindcasts.
 #
 # Usage: ./bias_correction_calendar_fix.sh <start_year>
-#   <start_year>  The starting year for the time axis (e.g., 1993)
+#   <start_year>      The starting year for the time axis (e.g., 1993)
+#   [bias_directory]  Optional directory for bias files
 #
 # Dependencies: CDO (Climate Data Operators) v2.0.6 or compatible
 #               (uncomment 'module load' line if running in an HPC environment)
 #
 # Input files (read from biasdir):
 #   - bias_NorCPM_ERA5_64M_<VAR>_20n.nc  : Bias correction files per variable
-#   - RATIO_PRECT_nobc_vs_bc.nc           : Precipitation ratio file
+#   - RATIO_PRECT_nobc_vs_bc.nc          : Precipitation ratio file
 #
 # Output files (written to biasdir):
 #   - bias_NorCPM_ERA5_64M_<VAR>_20n_cal.nc : Calendar-corrected bias files
@@ -27,8 +28,8 @@
 # --- Inputs ---
 syear=$1  # First argument: the starting year for the time axis
 
-# Directory containing input bias correction NetCDF files
-biasdir=/Users/annettes/Downloads/Tools_SEACLIM/noresm2-mm-seaclim_hindcast/
+# Directory containing input bias correction files (passed as 2nd arg or default)
+biasdir=${2:-./noresm2-mm-seaclim_hindcast/}
 
 # Check if a directory exists                                                                                                         
 if [ -d "$biasdir" ]; then
